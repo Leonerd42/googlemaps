@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title> My page </title>
+    <link rel="stylesheet" href="./libraries/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+    <div class="row">
+        <div class="col-4">
+            <div class="row">
+                <div class="col">
+                    <div id="colarEndereco">
+                        <label for="exceldata"> Cole os endereços aqui </label>
+                        <input type="textarea" class="form-control primeiraColagem" id="exceldata">
+                    </div>                    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div id="listarEndereco"></div>
+                </div>
+            </div>            
+        </div>
+        <div class="col-8">
+            <div id="map"></div>
+        </div>
+    </div>
+
+
+
+    <!-- SCRIPTS BOOTSTRAP -->
+    <script src="./libraries/jquery/jquery.min.js"></script>
+    <script src="./libraries/jquery-easing/jquery.easing.min.js"></script>
+    <script src="./libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SCRIPT GERAL -->
+    <script src="./js/script.js"></script>
+
+    <!-- GOOGLE MAPS API SCRIPT -->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTp_SG2fb0f7jzwBXfbx9n4NMA11s4t8k&callback=initMap">
+    </script>
+    </body>
+</html>

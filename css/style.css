@@ -1,0 +1,17 @@
+
+body{
+    padding: 20px;
+}
+
+/* ESTILO DO QUADRO DO MAPA */
+
+#map{
+    width: 100%;
+    border: 2px solid black; 
+    height: 600px;
+}
+
+/* TEXT AREA ONDE VAI TODOS OS ENDEREÇOS */
+.primeiraColagem{
+    height: 50px;
+}
