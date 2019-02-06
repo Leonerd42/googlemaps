@@ -1,8 +1,7 @@
-
-    // Mapa 
+    
+    // Variaveis importantes 
     var map; 
     var geocoder;
-    var ContMarkers = 0; 
     var MarkersArray = [];
     var directionsDisplay; 
     var directionsService; 
@@ -20,7 +19,49 @@
         streetViewControl: false
     }
 
-    // Função para iniciar o mapa do google 
+    // Função para calcular as melhores rotas - SEM IMPLEMENTAÇÃO AINDA
+    function CalcRouter(){  
+        
+        console.log(MarkersArray);
+
+        console.log(MarkersArray[0]);
+    }
+
+    // Função para adicionar os markers e retornar as posições no MarkersArray
+    function MarcarLugares(){
+        // Lendo os bairros com as inputs corrigadas 
+        var bairrosAtualizados = document.getElementsByName('listaDeEnderecos');
+        // Lendo a cidade em que haverá a busca
+        var lerCidade = document.getElementById('cidade').value; 
+        
+        // Criando um array de promise
+        var promisseArray = [];
+
+        // Adicionando um marcador para cada bairro buscado 
+        bairrosAtualizados.forEach(function(item){
+            var endereco = item.value + " " + lerCidade;
+            // Geocode Adress Retorna uma promise
+            promisseArray.push(GeocodeAdress(geocoder, map, endereco));
+        });
+
+        // Esperando todas as promessas serem cumpridas 
+        Promise.all(promisseArray)
+        .then(function(resolve){
+            // Calcula as rotas caso todos os endereços forem encontrados 
+            CalcRouter();
+        })
+        .catch(function(reject){
+            // Trata o erro 
+        });         
+    }   
+
+    /************************************************
+     * 
+     *          FUNÇÕES DO GOOGLE MAPS API
+     * 
+     ***********************************************/
+
+     // Função para iniciar o mapa do google 
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), options);       
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -28,42 +69,44 @@
         directionsDisplay.setMap(map); 
 
         geocoder = new google.maps.Geocoder();
-
-        //document.getElementById('submit').addEventListener('click', 
-        //function() {
-          //geocodeAddress(geocoder, map);
-        //});
     }
 
-    function geocodeAddress(geocoder, resultsMaps, address){
-        //var address = document.getElementById('address').value;
-        var marker;
-        geocoder.geocode({'address': address}, function(results, status) {
-          if (status === 'OK') {
-            resultsMaps.setCenter(results[0].geometry.location);
-              marker = new google.maps.Marker({
-              map: resultsMaps,
-              position: results[0].geometry.location, 
-              title: address
+    //Nova função geocode como promessa 
+    function GeocodeAdress(geocoder, resultsMaps, address){
+        return new Promise(function(resolve, reject){
+            // Função do google maps API para encontrar o endereço passado 
+            geocoder.geocode({'address': address}, function(results, status) {
+                if (status === 'OK') {
+                    resultsMaps.setCenter(results[0].geometry.location);
+                        marker = new google.maps.Marker({
+                        map: resultsMaps,
+                        position: results[0].geometry.location, 
+                        title: address
+                    });
+                    var object = {
+                        lat: results[0].geometry.location.lat(), 
+                        lgn:  results[0].geometry.location.lng(),
+                        title: address
+                    }
+                    MarkersArray.push(object);
+                    //Promisse fullfilled
+                    resolve('Marker Adicionado');
+                } else {
+                  alert('Geocode was not successful for the following reason: ' + status + 'endereço: ' + address);
+                  //Promisse failed 
+                  reject('Falha');
+                }
             });
-            var object = {
-                lat: results[0].geometry.location.lat(), 
-                lgn:  results[0].geometry.location.lng(),
-                title: address
-            }
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status + 'endereço: ' + address);
-          }
-          MarkersArray[ContMarkers++] = object;
         });
     }
 
-    document.getElementById('exceldata').addEventListener('change', function(){
-        //console.log('opa');
-        ListarEnderecos(); 
-    });
+    /************************************************
+     * 
+     *           FUNÇÕES PARA INTERFACE 
+     * 
+    ************************************************/
 
-    // Função de teste
+    // Função para listar os endereços adicionados no textArea
     function ListarEnderecos(){
         //alert("olá");
         var data = document.getElementById('exceldata').value;
@@ -90,38 +133,13 @@
         </div>');
         $('#listarEndereco').append('<button class="btn btn-primary" onclick="MarcarLugares()"> Calcular </button>')
     }
+    /***********************************************
+     * 
+     *                  LISTENERS 
+     * 
+     **********************************************/
 
-    function MarcarLugares(){
-        var bairrosAtualizados = document.getElementsByName('listaDeEnderecos');
-        var lerCidade = document.getElementById('cidade').value; 
-        //Adicionar um marcador para cada endereço 
-        for(var i=0; i<bairrosAtualizados.length; i++){
-            var endereco = bairrosAtualizados[i].value + " " + lerCidade; 
-            geocodeAddress(geocoder, map, endereco);
-        }
-
-        console.log(MarkersArray);
-        CalcRouter();
-        //Calcular rota 
-    }
-
-    function CalcRouter(){
-        console.log(MarkersArray.lat);
-
-        //var start = new google.maps.LatLng(MarkersArray[0].lat, MarkersArray[0].lng);
-        //var end = new google.maps.LatLng(MarkersArray[1].lat, MarkersArray[1].lng);
-
-        /*
-
-        var request = {
-            origin: start,
-            destination: end,
-            travelMode: google.maps.TravelMode.DRIVING
-        };
-        directionsService.route(request, function(response, status){
-            if(status == google.maps.DirectionsStatus.OK){
-                directionsDisplay.setDirections(response);
-            }
-        });*/
-
-    }
+    // Listener de quando for colado os endereços 
+    document.getElementById('exceldata').addEventListener('change', function(){
+        ListarEnderecos(); 
+    });
