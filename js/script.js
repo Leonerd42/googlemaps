@@ -6,25 +6,114 @@
     var directionsDisplay; 
     var directionsService; 
 
+    // MATRIZ DISTANCIA DE TODOS OS VÉRTICES 
+    var DistanceMatriz = [];
+
+    // Objeto de origem do sistema
+    var MarkerOfOrigin; 
+
     // Coordenadas de Bauru - SP
     var BauruCoordinate = {
         lat: -22.322081, 
         lng: -49.071152
     };
-
+    // Coordenadas NETDIGIT TELECOM - Origem 
+    var NetdigitCoordinate = {
+        lat: -22.336824,
+        lng: -49.063288
+    };
     // Opções do mapa 
     var options = {
         center: BauruCoordinate, 
         zoom: 13, 
-        streetViewControl: false
+        zoomControl: false,
+        mapTypeControl: false,
+        scaleControl: false,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true
     }
 
-    // Função para calcular as melhores rotas - SEM IMPLEMENTAÇÃO AINDA
-    function CalcRouter(){  
-        
-        console.log(MarkersArray);
+    // Função para calcular a distancia da origem para todos os outros vértices 
+    function TodasAsDistancias(){
 
-        console.log(MarkersArray[0]);
+        // Percorrer o vetor de marcadores e retornar a distancia para um outro vetor 
+
+        DistanceMatriz = MarkersArray.map(function(origem){
+            var newArray = MarkersArray.map(function(destino){
+                var distance; 
+                CalcularDistanciaXY(origem, destino)
+                .then(function(result){
+                    console.log(result);
+                    console.log('Tempo de viagem: ' + result.duration);
+                    console.log('Distancia de viagem: ' + result.distance);
+                    distance = result.distance;
+                })
+                .catch(function(err){
+                    console.log("Algum erro: " + err);
+                }); 
+                return distance;
+            });
+            return newArray;
+        });
+
+        
+
+        /*var VetorDistancia = MarkersArray.map(function(item){
+            var newArray = MarkersArray.map(function(newItem){
+                return CalcularDistanciaXY(item, newItem);
+            });
+            return newArray;
+        }); 
+          
+        console.log(VetorDistancia);  */
+
+        Promise.all( DistanceMatriz )
+        .then(function(results){
+
+            console.log(DistanceMatriz);
+        })
+        .catch(function(err){
+
+        });
+    }
+
+    // Retornar o objeto rota do google maps 
+    function CalcularDistanciaXY(inicio, destino){
+        return new Promise(function(resolve, reject){
+            var start = new google.maps.LatLng(inicio.lat, inicio.lng);
+            var end = new google.maps.LatLng(destino.lat, destino.lng);
+
+            var request = {
+                origin: start, 
+                destination: end, 
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            // A promessa retorna o objeto da rota se o status == OK
+            directionsService.route(request, function(response, status){
+                if(status == google.maps.DirectionsStatus.OK){
+
+                    // Objeto legivel 
+                    var dadosRota = {
+                        distance: response.routes[0].legs[0].distance.text,
+                        origin: {
+                            lat: response.routes[0].legs[0].start_location.lat(),  
+                            lng: response.routes[0].legs[0].start_location.lng()
+                        }, 
+                        destination:{ 
+                            lat: response.routes[0].legs[0].end_location.lat(), 
+                            lng: response.routes[0].legs[0].end_location.lng()
+                        },
+                        duration: response.routes[0].legs[0].duration.text
+                    }
+                    resolve(dadosRota);
+                }else{
+                    // Se não for OK, a promessa é rejeitada 
+                    reject(JSON.stringify(google.maps.DirectionsStatus));
+                }
+            });
+        });
     }
 
     // Função para adicionar os markers e retornar as posições no MarkersArray
@@ -48,7 +137,7 @@
         Promise.all(promisseArray)
         .then(function(resolve){
             // Calcula as rotas caso todos os endereços forem encontrados 
-            CalcRouter();
+            TodasAsDistancias()
         })
         .catch(function(reject){
             // Trata o erro 
@@ -69,6 +158,20 @@
         directionsDisplay.setMap(map); 
 
         geocoder = new google.maps.Geocoder();
+
+        //Criar um marcador para a origem 
+        var marker = new google.maps.Marker({
+            position: NetdigitCoordinate, 
+            map: map, 
+            title: "Netdigit Telecom"
+        });
+
+        MarkerOfOrigin = {
+            lat: marker.position.lat(),
+            lng: marker.position.lng(), 
+            title: "Origem"
+        };
+        MarkersArray.push(MarkerOfOrigin);
     }
 
     //Nova função geocode como promessa 
@@ -85,7 +188,7 @@
                     });
                     var object = {
                         lat: results[0].geometry.location.lat(), 
-                        lgn:  results[0].geometry.location.lng(),
+                        lng:  results[0].geometry.location.lng(),
                         title: address
                     }
                     MarkersArray.push(object);
